@@ -72,7 +72,7 @@ export default function NewProblemPage() {
       const res = await fetch("/api/problems", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify({ ...form, assigneeId: form.assigneeId === "none" ? "" : form.assigneeId }),
       });
       if (!res.ok) throw new Error("Failed");
       const problem = await res.json();
@@ -258,7 +258,7 @@ export default function NewProblemPage() {
                       <SelectValue placeholder="Select assignee (optional)" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">Unassigned</SelectItem>
+                      <SelectItem value="none">Unassigned</SelectItem>
                       {users.map((u) => (
                         <SelectItem key={u.id} value={u.id}>
                           {u.name} — {u.department}
