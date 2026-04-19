@@ -1,0 +1,131 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model User {
+  id         String   @id @default(cuid())
+  name       String
+  email      String   @unique
+  role       String   @default("engineer")
+  department String
+  avatar     String?
+  createdAt  DateTime @default(now())
+
+  reportedProblems Problem[]      @relation("Reporter")
+  assignedProblems Problem[]      @relation("Assignee")
+  actions          Action[]
+  comments         Comment[]
+  verifications    Verification[]
+}
+
+model Problem {
+  id          String    @id @default(cuid())
+  title       String
+  description String
+  severity    String
+  status      String    @default("reported")
+  category    String
+  area        String
+  partNumber  String?
+  batchNumber String?
+  detectedAt  DateTime  @default(now())
+  dueDate     DateTime?
+  closedAt    DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  reporterId String
+  reporter   User   @relation("Reporter", fields: [reporterId], references: [id])
+
+  assigneeId String?
+  assignee   User?   @relation("Assignee", fields: [assigneeId], references: [id])
+
+  rootCause    RootCause?
+  actions      Action[]
+  comments     Comment[]
+  verification Verification?
+  attachments  Attachment[]
+}
+
+model RootCause {
+  id        String  @id @default(cuid())
+  problemId String  @unique
+  problem   Problem @relation(fields: [problemId], references: [id], onDelete: Cascade)
+
+  why1      String?
+  why2      String?
+  why3      String?
+  why4      String?
+  why5      String?
+  rootCause String?
+  category  String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Action {
+  id          String    @id @default(cuid())
+  problemId   String
+  problem     Problem   @relation(fields: [problemId], references: [id], onDelete: Cascade)
+
+  title       String
+  description String
+  type        String
+  status      String    @default("open")
+  priority    String    @default("medium")
+  dueDate     DateTime?
+  completedAt DateTime?
+
+  assigneeId String
+  assignee   User   @relation(fields: [assigneeId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Verification {
+  id        String  @id @default(cuid())
+  problemId String  @unique
+  problem   Problem @relation(fields: [problemId], references: [id], onDelete: Cascade)
+
+  isEffective Boolean?
+  notes       String?
+  method      String?
+  verifiedAt  DateTime?
+
+  verifiedById String?
+  verifiedBy   User?   @relation(fields: [verifiedById], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  problemId String
+  problem   Problem  @relation(fields: [problemId], references: [id], onDelete: Cascade)
+
+  content   String
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+
+  createdAt DateTime @default(now())
+}
+
+model Attachment {
+  id        String   @id @default(cuid())
+  problemId String
+  problem   Problem  @relation(fields: [problemId], references: [id], onDelete: Cascade)
+
+  fileName  String
+  fileSize  Int
+  fileType  String
+  url       String
+
+  createdAt DateTime @default(now())
+}
